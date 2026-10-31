@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do CLI Web Interface</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Courier New', monospace;
+            background: #1a1a2e;
+            color: #0f0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            color: #0f0;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #0f0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .header-info {
+            color: #a0a0a0;
+            font-size: 0.9em;
+        }
+
+        .command-input {
+            background: #16213e;
+            border: 2px solid #0f0;
+            color: #0f0;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .command-input:focus {
+            outline: none;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .execute-btn {
+            background: #0f0;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 24px;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .execute-btn:hover {
+            background: #00a844;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+        }
+
+        .command-output {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .output-line {
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 5px;
+        }
+
+        .output-line.error {
+            color: #ff4757;
+        }
+
+        .output-line.success {
+            color: #2ed573;
+        }
+
+        .output-line.info {
+            color: #70a1ff;
+        }
+
+        .output-body {
+            color: #c9d1d9;
+            white-space: pre-wrap;
+        }
+
+        .examples {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .examples h2 {
+            color: #0f0;
+            margin-bottom: 15px;
+        }
+
+        .example-item {
+            background: #0d1117;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-left: 3px solid #0f0;
+        }
+
+        .example-command {
+            color: #2ed573;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .example-description {
+            color: #b0b0b0;
+            font-size: 0.9em;
+        }
+
+        .divider {
+            color: #30363d;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💻 To-Do CLI Web Interface</h1>
+            <p>Execute CLI commands in your browser</p>
+        </div>
+
+        <input type="text" class="command-input" id="commandInput" placeholder="Enter command: node todo-cli.js add 'Your task'" autocomplete="off">
+        <button class="execute-btn" onclick="executeCommand()">Execute Command</button>
+
+        <div class="command-output">
+            <div class="output-line success">> Ready to execute to-do CLI commands</div>
+            <div class="output-body" id="outputBody">// Command output will appear here...</div>
+        </div>
+
+        <div class="examples">
+            <h2>📖 Available Commands</h2>
+
+            <div class="example-item">
+                <div class="example-command">add "Buy groceries"</div>
+                <div class="example-description">Add a new task to your to-do list</div>
+            </div>
+
+            <div class="example-item">
+                <div class="example-command">list</div>
+                <div class="example-description">Display all tasks in the list</div>
+            </div>
+
+            <div class="example-item">
+                <div class="example-command">done 1</div>
+                <div class="example-description">Mark task number 1 as done</div>
+            </div>
+
+            <div class="example-item">
+                <div class="example-command">undone 2</div>
+                <div class="example-description">Mark task number 2 as undone</div>
+            </div>
+
+            <div class="divider" style="color: #0f0;">------------------</div>
+
+            <div class="example-item">
+                <div class="example-command">add "Complete project"</div>
+                <div class="example-description">Add multiple tasks by repeating the command</div>
+            </div>
+
+            <div class="example-item">
+                <div class="example-command">list</div>
+                <div class="example-description">See all your tasks with status (○) and (✓)</div>
+            </div>
+
+            <div class="example-item">
+                <div class="example-command">done 1 && list</div>
+                <div class="example-description">Mark task as done and view the list in one go</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/cli';
+
+        function executeCommand() {
+            const input = document.getElementById('commandInput');
+            const outputBody = document.getElementById('outputBody');
+            const command = input.value.trim();
+
+            if (!command) {
+                printOutput('Please enter a command first.', 'error');
+                return;
+            }
+
+            printOutput(`> ${command}`, 'info');
+
+            // Parse the command
+            const match = command.match(/node todo-cli\.js (\w+)(?: (.+))?/);
+            if (!match) {
+                printOutput('Error: Invalid command format. Use "node todo-cli.js <command> [arguments]"', 'error');
+                return;
+            }
+
+            const [, cmd, args] = match;
+
+            switch (cmd) {
+                case 'add':
+                    if (args) {
+                        addTaskToServer(args);
+                    } else {
+                        printOutput('Error: Please provide a task description. Usage: node todo-cli.js add "task"', 'error');
+                    }
+                    break;
+
+                case 'list':
+                    fetchTasks();
+                    break;
+
+                case 'done':
+                case 'undone':
+                    if (args && !isNaN(args)) {
+                        toggleTask(parseInt(args), cmd === 'done');
+                    } else {
+                        printOutput('Error: Please provide a number. Usage: node todo-cli.js done 1', 'error');
+                    }
+                    break;
+
+                default:
+                    printOutput(`Error: Unknown command "${cmd}". Use: add, list, done, or undone`, 'error');
+            }
+        }
+
+        function addTaskToServer(text) {
+            fetch(`${API_URL}/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                printOutput(data, 'success');
+                fetchTasks();
+            })
+            .catch(err => {
+                printOutput(`Error: ${err.message}`, 'error');
+            });
+        }
+
+        function fetchTasks() {
+            fetch(`${API_URL}/list`)
+                .then(res => res.json())
+                .then(tasks => {
+                    if (tasks.length === 0) {
+                        printOutput('No tasks yet. Add one with: node todo-cli.js add "Your task"', 'info');
+                    } else {
+                        printOutput('\n--- TO-DO LIST (' + tasks.length + ' task' + (tasks.length !== 1 ? 's' : '') + ') ---');
+                        tasks.forEach((task, index) => {
+                            const status = task.done ? '✓' : '○';
+                            const line = `${index + 1}. [${status}] ${task.done ? task.text : task.text + ' (done)'}`;
+                            printOutput(line);
+                        });
+                        printOutput('');
+                    }
+                })
+                .catch(err => {
+                    printOutput(`Error: ${err.message}`, 'error');
+                });
+        }
+
+        function toggleTask(id, done) {
+            fetch(`${API_URL}/toggle?id=${id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ done })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const status = data.done ? 'done' : 'undone';
+                printOutput(`Task marked as ${status}: "${data.text}"`, 'success');
+                fetchTasks();
+            })
+            .catch(err => {
+                printOutput(`Error: ${err.message}`, 'error');
+            });
+        }
+
+        function printOutput(text, type = '') {
+            const outputBody = document.getElementById('outputBody');
+            const newLine = document.createElement('div');
+            newLine.className = `output-line ${type}`;
+            newLine.textContent = text;
+            outputBody.appendChild(newLine);
+        }
+
+        // Allow Ctrl+Enter to execute command
+        document.getElementById('commandInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                executeCommand();
+            }
+        });
+
+        // Load initial tasks for reference
+        fetchTasks();
+    </script>
+</body>
+</html>
