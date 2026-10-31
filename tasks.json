@@ -16,5 +16,11 @@
     "text": "Test task to mark done",
     "done": true,
     "createdAt": "2026-10-31T15:15:45.256Z"
+  },
+  {
+    "id": 1793461156450,
+    "text": "Test task from CLI",
+    "done": false,
+    "createdAt": "2026-10-31T15:39:16.450Z"
   }
 ]
