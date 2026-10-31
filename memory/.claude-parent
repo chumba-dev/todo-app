@@ -1,0 +1,10 @@
+# Project Memory Index
+
+This file serves as an index to project-specific memories.
+
+- [main-app-overview](main-app-overview.md) — Core project structure and capabilities
+- [tech-stack](tech-stack.md) — Technologies and frameworks used
+- [code-patterns](code-patterns.md) — Common patterns and conventions in this codebase
+- [developer-preferences](developer-preferences.md) — User's working style and preferences
+
+---
